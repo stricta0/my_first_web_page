@@ -10,31 +10,30 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-# ===== Konfiguracja SCOPES
-SCOPES = [
+import json
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+
+# DWA ZESTAWY ZAKRESÓW: osobno do Drive i do Gmail
+SCOPES_DRIVE = [
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/documents",
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/gmail.send",
 ]
+SCOPES_GMAIL = ["https://www.googleapis.com/auth/gmail.send"]
 
-# ===== Bezpieczeństwo: poświadczenia z st.secrets
-def get_creds_from_secrets() -> Credentials:
-    # token_json wklejony w Secrets (jako string JSON)
-    token_info = json.loads(st.secrets["token_json"])
+def get_drive_creds():
+    data = json.loads(st.secrets["token_drive"])
+    creds = Credentials.from_authorized_user_info(data, SCOPES_DRIVE)
+    if not creds.valid and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+    return creds
 
-    # Jeśli token.json zawiera client_id/client_secret, wystarczy to:
-    creds = Credentials.from_authorized_user_info(token_info, SCOPES)
-
-    # odśwież access token jeśli potrzeba (refresh_token jest w token_info)
-    if not creds.valid:
-        if creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            # Gdyby token był unieważniony – pokaż czytelny komunikat
-            raise RuntimeError(
-                "Token OAuth jest nieważny/niekompletny. Wygeneruj nowy token.json lokalnie i wklej do Secrets."
-            )
+def get_gmail_creds():
+    data = json.loads(st.secrets["token_gmail"])
+    creds = Credentials.from_authorized_user_info(data, SCOPES_GMAIL)
+    if not creds.valid and creds.expired and creds.refresh_token:
+        creds.refresh(Request())
     return creds
 
 # ===== Helpery Drive (minimalnie uproszczone)
@@ -198,21 +197,22 @@ if st.button("Zatwierdź", type="primary"):
     if not email_adres or "@" not in email_adres:
         st.error("Podaj poprawny adres e‑mail.")
     else:
+        dodatkowa = ""
         try:
             with st.spinner("Przygotowuję Twoje materiały..."):
-                creds = get_creds_from_secrets()
-
-                # 1) Klonujemy folder i pobieramy publiczny link
-                public_link = copy_disk_and_make_public_link(creds)
-
-                # 2) Wczytujemy treść e‑maila i podstawiamy link
+                # 1) Drive: klonowanie folderu i publiczny link
+                drive_creds = get_drive_creds()
+                public_link = copy_disk_and_make_public_link(drive_creds)
+                dodatkowa = f"link do dysku: {public_link}"
+                # 2) Wczytanie szablonu e‑maila i wstawienie linku
                 with open("tresc_emaila.txt", "r", encoding="utf-8") as f:
                     template = f.read()
                 body = template.replace("[LINK_DO_GOOGLE_DRIVE]", public_link)
-
-                # 3) Wysyłamy e‑mail
+                dodatkowa += "\nprzed wiadomoscia"
+                # 3) Gmail: wysyłka wiadomości
+                gmail_creds = get_gmail_creds()
                 msg_id = send_email_gmail(
-                    creds,
+                    gmail_creds,
                     to_addr=email_adres,
                     subject="Twoje materiały – link do Dysku Google",
                     body_text=body,
@@ -222,5 +222,6 @@ if st.button("Zatwierdź", type="primary"):
             st.caption(f"(ID wiadomości: {msg_id})")
 
         except Exception as e:
-            st.error(f"Coś poszło nie tak: {e}")
+            st.error(f"Coś poszło nie tak: {e}, \n dodatek: {dodatkowa}")
             st.stop()
+

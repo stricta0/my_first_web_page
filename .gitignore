@@ -1,0 +1,2 @@
+# ignoruj sekrety streamlit
+.streamlit/secrets.toml
