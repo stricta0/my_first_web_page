@@ -1,8 +1,8 @@
 import streamlit as st
 
-st.title("Moja pierwsza aplikacja w Streamlit 🎉")
-st.write("To jest prosta aplikacja webowa w Pythonie.")
+st.title("Podaj swój adres email aby się zapisać")
+st.write("Po kliknięciu zatwierd wyślemy do ciebie wiadomość email z informajcami")
 
-name = st.text_input("Jak masz na imię?")
-if st.button("Powiedz cześć"):
-    st.success(f"Cześć, {name}!")
+email_adres = st.text_input("email:")
+if st.button("Zatwierdź"):
+    st.success(f"Wiadomość email została wyslana na adres, {email_adres}!")
