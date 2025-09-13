@@ -265,6 +265,7 @@ def copy_disk(
     anyone_role: Optional[str] = "reader",   # NEW: Optional -> można wyłączyć „anyone” podając None
     root_name_template: Optional[str] = None,
     lock_editors_sharing: bool = False,      # NEW: writersCanShare=False gdy True
+    dst_parent_id: Optional[str] = None,     # NEW: ID folderu docelowego (np. na My Drive konta-bota)
 ) -> dict:
     """
     Klonuje cały folder (traktowany jako „dysk”), podmienia PLACEHOLDER_TOKEN w nazwach
@@ -272,12 +273,13 @@ def copy_disk(
     (opcjonalnie) blokuje możliwość dalszego udostępniania przez edytorów,
     zwraca metadane nowego folderu.
     Jeśli `root_name_template` jest podany, nazwa roota będzie z niego wyrenderowana.
+    Jeśli `dst_parent_id` jest podany – nowy root zostanie utworzony *we wskazanym folderze*.
     """
     src_id = extract_id_from_url(source_link_or_id)
     new_root_id, _ = clone_folder_tree(
         drive,
         src_id,
-        dst_parent_id=None,
+        dst_parent_id=dst_parent_id,  # <-- ważne: tworzymy kopię we wskazanym folderze
         full_name=full_name.strip() if isinstance(full_name, str) else full_name,
         root_name_template=root_name_template,
     )
@@ -288,6 +290,7 @@ def copy_disk(
 
     # 2) (opcjonalnie) zablokuj share przez edytorów (writersCanShare=false)
     if lock_editors_sharing:
+        # zakładamy, że masz helper set_writers_can_share(drive, file_id, allow: bool)
         set_writers_can_share(drive, new_root_id, allow=False)
 
     # zwrot metadanych

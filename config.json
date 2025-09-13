@@ -1,15 +1,21 @@
 {
   "google_drive": {
+    "auth": "oauth",  
     "root_name_template": "IMIE_NAZWISKO matura informatyka IT",
     "anyone_role": "writer",
-    "lock_editors_sharing": true
+    "lock_editors_sharing": true,
+    "destination_parent": "1iQHu0rMkQ3wVJqiDz0g_ShCvlASfV26U"
   },
   "email": {
-    "subject": "Dysk do korepetycji z IT",
-    "body_md": "# Cześć, [IMIE_NAZWISKO]!\n\n[**Otwórz folder**]([LINK_DO_GOOGLE_DRIVE])\n\n---\nJeśli link nie działa, skopiuj ten adres:\n\n```\n[LINK_DO_GOOGLE_DRIVE]\n```\n\nPozdrawiam,\nZespół korepetycji IT"
+    "subject": "Dysk do korepetycji z IT"
   },
   "brand": {
+    "name": "Korepetycje Informatyka",
     "accent": "#0ea5e9",
-    "footer": "© 2025 Korepetycje IT • W razie pytań odpisz na tego maila."
+    "footer": "© 2025 Korepetycje Informatyka • W razie pytań odpisz na tego maila.",
+    "gradient_style": "pastel",
+    "_gradient_style_options": "vibrant /sunset / pastel",
+    "page_bg": "#FFF7ED"
   }
+
 }
